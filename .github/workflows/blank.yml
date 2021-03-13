@@ -32,7 +32,7 @@ jobs:
         with:
           path: |
             wine32.tar.gz
-          key: ${{ runner.os }}-wine
+          key: ${{ runner.os }}-wine32-${{ secrets.WINE_UNIQUE }}
 
       - name: wine - update
         if: steps.cache-wine.outputs.cache-hit == 'true'      
