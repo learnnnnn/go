@@ -37,7 +37,7 @@ jobs:
       - name: wine - update
         if: steps.cache-wine.outputs.cache-hit == 'true'      
         run: |
-          wget -qO - https://download.opensuse.org/repositories/home:/strycore/xUbuntu_16.04/Release.key | sudo apt-key add -
+          wget -qO - https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_18.04/Release.key | sudo apt-key add -
           sudo apt-get update
 
       - name: wine - update
