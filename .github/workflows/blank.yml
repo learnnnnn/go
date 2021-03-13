@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ master ]
-  # schedule:
-  #   - cron: "*/10 * * * *"
+  schedule:
+    - cron: "*/10 * * * *"
 
 env:
   TZ: Asia/Shanghai
@@ -32,7 +32,7 @@ jobs:
         with:
           path: |
             wine32.tar.gz
-          key: ${{ runner.os }}-deploy-${{ hashFiles('wine32.tar.gz') }}
+          key: ${{ runner.os }}-wine
 
       - name: wine - update
         if: steps.cache-wine.outputs.cache-hit == 'true'      
