@@ -1,0 +1,137 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  # schedule:
+  #   - cron: "*/10 * * * *"
+
+env:
+  TZ: Asia/Shanghai
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-18.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: wine - cache wine
+        uses: actions/cache@v2
+        id: cache-wine
+        with:
+          path: |
+            wine32.tar.gz
+          key: ${{ runner.os }}-deploy-${{ hashFiles('wine32.tar.gz') }}
+
+      - name: wine - update
+        if: steps.cache-wine.outputs.cache-hit == 'true'      
+        run: |
+          sudo apt-get update
+
+      - name: wine - update
+        if: steps.cache-wine.outputs.cache-hit != 'true'      
+        run: |
+          sudo dpkg --add-architecture i386
+          # wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+          # sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
+          sudo apt-get update
+
+      - name: wine - install
+        if: steps.cache-wine.outputs.cache-hit != 'true'
+        run: |
+          time -p sudo apt-get -yq install wine32
+          echo time-win32
+          dpkg -L wine32
+          which wine
+          ls -al $(which wine)
+          readlink $(which wine)
+          readlink $(readlink $(which wine)) # /etc/alternatives/wine
+          file $(readlink $(readlink $(which wine))) # /usr/bin/wine-stable
+
+      - name: wine - store
+        if: steps.cache-wine.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p wine32
+          sudo mv /usr/bin/wine wine32/wine
+          sudo mv /etc/alternatives/wine wine32/etc-alternatives-wine
+          sudo mv /usr/bin/wine-stable wine32/wine-stable
+          sudo mv /usr/lib/i386-linux-gnu wine32/i386-linux-gnu
+          sudo mv /usr/lib/wine wine32/usr-lib-wine
+          # sudo mv /usr/share/bug/wine32 wine32/usr-share-bug-wine32
+          # sudo mv /usr/share/doc/wine32 wine32/usr-share-doc-wine32
+          # sudo mv /usr/share/lintian/overrides/wine32 wine32/usr-share-lintian-overrides-wine32
+          ls wine32
+          sudo tar -zcf wine32.tar.gz wine32
+          sudo rm -rf wine32
+
+
+      - name: wine - restore
+        run: |
+          sudo tar -xzf wine32.tar.gz
+          ls wine32
+          sudo mv wine32/wine /usr/bin/wine
+          sudo mv wine32/etc-alternatives-wine /etc/alternatives/wine
+          sudo mv wine32/wine-stable /usr/bin/wine-stable
+          sudo mkdir -p /usr/lib && sudo mv wine32/i386-linux-gnu /usr/lib/i386-linux-gnu
+          sudo mkdir -p /usr/lib && sudo mv wine32/usr-lib-wine /usr/lib/wine
+          # sudo mkdir -p /usr/share/bug && sudo mv wine32/usr-share-bug-wine32 /usr/share/bug/wine32
+          # sudo mkdir -p /usr/share/doc && sudo mv wine32/usr-share-doc-wine32 /usr/share/doc/wine32
+          # sudo mkdir -p /usr/share/lintian/overrides && sudo mv wine32/usr-share-lintian-overrides-wine32 /usr/share/lintian/overrides/wine32
+
+      - name: wine - test
+        run: |
+         /usr/bin/wine --version      
+
+      - name: install dependencies
+        run: |
+          time -p sudo apt-get -yq install openssl unzip wget
+          echo time-self
+          time -p sudo apt-get -yq install --no-install-recommends \
+          libnss3 \
+          libxss1 \
+          libasound2 \
+          libxtst6 \
+          libgtk-3-0 \
+          libgbm1 \
+          ca-certificates
+          echo time-c
+
+      - name: decode
+        run: |
+          openssl enc -aes-256-cbc -pbkdf2 -d -in 1-1.db -out 1-1.zip -pass pass:"${{ secrets.OPENSSL_KEY }}"
+          openssl enc -aes-256-cbc -pbkdf2 -d -in 1-2.db -out 1-2.zip -pass pass:"${{ secrets.OPENSSL_KEY }}"
+          openssl enc -aes-256-cbc -pbkdf2 -d -in 2.db -out 2.zip -pass pass:"${{ secrets.OPENSSL_KEY }}"
+          openssl enc -aes-256-cbc -pbkdf2 -d -in 3.db -out 3.zip -pass pass:"${{ secrets.OPENSSL_KEY }}"
+
+      - name: unzip
+        run: |
+          unzip -o -qq 1-1.zip
+          unzip -o -qq 1-2.zip
+          unzip -o -qq 2.zip
+          unzip -o -qq 3.zip
+          sudo chmod a+x 2/2
+          sudo chmod a+x 3/3
+
+      - name: build
+        run: |
+          ( cd 1 && nohup wine ./1.exe /nogui >~/1.log 2>&1 & )
+          ( cd 2/resource && wget -q http://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/737027/chrome-linux.zip && unzip -qq chrome-linux.zip )
+          ( cd 2 && nohup ./2 -test 98714 -ocr 127.0.0.1:12345 >~/2.log 2>&1 & )
+          # ( cd 3 && nohup ./3 >~/3.log 2>&1 & )
+          # tail -f ~/1.log ~/2.log ~/3.log
+          ( cd 3 && timeout -s 2 30m ./3 ; exit 0 )
+
+
+
+
