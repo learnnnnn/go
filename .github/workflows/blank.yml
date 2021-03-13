@@ -41,7 +41,6 @@ jobs:
       - name: wine - update
         if: steps.cache-wine.outputs.cache-hit != 'true'      
         run: |
-          sudo dpkg --add-architecture i386
           # wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
           # sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
           sudo apt-get update
