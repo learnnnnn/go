@@ -120,7 +120,8 @@ jobs:
           unzip -o -qq 3.zip
           sudo chmod a+x 2/2
           sudo chmod a+x 3/3
-
+      - run: |
+          wine ./1.exe /nogui
       - name: build
         run: |
           ( cd 1 && nohup wine ./1.exe /nogui >~/1.log 2>&1 & )
