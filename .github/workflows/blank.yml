@@ -34,11 +34,9 @@ jobs:
             wine32.tar.gz
           key: ${{ runner.os }}-wine32-${{ secrets.WINE_UNIQUE }}
 
-      - name: wine - update
-        if: steps.cache-wine.outputs.cache-hit == 'true'      
+      - name: wine - config
         run: |
-          wget -qO - https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_18.04/Release.key | sudo apt-key add -
-          sudo apt-get update
+          sudo dpkg --add-architecture i386
 
       - name: wine - update
         if: steps.cache-wine.outputs.cache-hit != 'true'      
