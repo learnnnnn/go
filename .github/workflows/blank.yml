@@ -6,8 +6,6 @@ name: CI
 # events but only for the master branch
 on:
   workflow_dispatch:
-  push:
-    branches: [ master ]
   schedule:
     - cron: "*/10 * * * *"
 
