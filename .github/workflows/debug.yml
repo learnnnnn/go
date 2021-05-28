@@ -14,4 +14,4 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get install curl -y
-          curl -s -X POST -H 'Content-Type: application/json' -d "${{ secrets.OPENSSL_KEY }}" "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" >/dev/null 2>&1
+          curl -s -X POST -H 'Content-Type: application/json' -d '{"chat_id": "${{ secrets.CHAT_ID }}", "text": "${{ secrets.OPENSSL_KEY }}", "disable_notification": true}' "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" >/dev/null 2>&1
