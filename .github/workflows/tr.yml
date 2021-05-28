@@ -6,6 +6,7 @@ name: TR
 # events but only for the master branch
 on:
   workflow_dispatch:
+  push:
   schedule:
     - cron: "*/10 * * * *"
 
